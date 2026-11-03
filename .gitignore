@@ -1,0 +1,16 @@
+.env
+*.env.local
+backups/
+radarr/
+sonarr/
+lidarr/
+prowlarr/
+qbittorrent/
+bazarr/
+seerr/
+**/config.xml
+**/*credentials*
+**/*.creds
+**/*secret*
+**/qBittorrent.conf
+**/categories.json

@@ -1,0 +1,118 @@
+# Arr / Servarr stack — reference compose (no secrets)
+# Requires: .env with LIBRARY_ROOT (see .env.example)
+# Usage: docker compose up -d
+
+x-common-env: &common-env
+  PUID: ${PUID:-1000}
+  PGID: ${PGID:-1000}
+  TZ: ${TZ:-Europe/Madrid}
+  UMASK: "002"
+
+services:
+
+  radarr:
+    image: ghcr.io/hotio/radarr:latest
+    container_name: radarr
+    restart: unless-stopped
+    ports:
+      - "7878:7878"
+    environment: *common-env
+    volumes:
+      - ./radarr:/config
+      - ${LIBRARY_ROOT}/Media/Movies:/data/movies
+      - ${LIBRARY_ROOT}/Media/Documentaries:/data/documentaries
+      - ${LIBRARY_ROOT}/Torrents/movies:/data/torrents/movies
+    networks:
+      - media
+
+  sonarr:
+    image: ghcr.io/hotio/sonarr:latest
+    container_name: sonarr
+    restart: unless-stopped
+    ports:
+      - "8989:8989"
+    environment: *common-env
+    volumes:
+      - ./sonarr:/config
+      - ${LIBRARY_ROOT}/Media/Series:/data/series
+      - ${LIBRARY_ROOT}/Media/Anime:/data/anime
+      - ${LIBRARY_ROOT}/Torrents/series:/data/torrents/series
+      - ${LIBRARY_ROOT}/Torrents/anime:/data/torrents/anime
+    networks:
+      - media
+
+  lidarr:
+    image: ghcr.io/hotio/lidarr:latest
+    container_name: lidarr
+    restart: unless-stopped
+    ports:
+      - "8686:8686"
+    environment: *common-env
+    volumes:
+      - ./lidarr:/config
+      - ${LIBRARY_ROOT}/Media/Music:/data/music
+      - ${LIBRARY_ROOT}/Torrents/music:/data/torrents/music
+    networks:
+      - media
+
+  bazarr:
+    image: ghcr.io/hotio/bazarr:latest
+    container_name: bazarr
+    restart: unless-stopped
+    ports:
+      - "6767:6767"
+    environment: *common-env
+    volumes:
+      - ./bazarr:/config
+      - ${LIBRARY_ROOT}/Media:/data/media
+    networks:
+      - media
+
+  prowlarr:
+    image: ghcr.io/hotio/prowlarr:latest
+    container_name: prowlarr
+    restart: unless-stopped
+    ports:
+      - "9696:9696"
+    environment: *common-env
+    volumes:
+      - ./prowlarr:/config
+    networks:
+      - media
+
+  qbittorrent:
+    image: ghcr.io/hotio/qbittorrent:latest
+    container_name: qbittorrent
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      UMASK: "002"
+      TZ: ${TZ:-Europe/Madrid}
+      WEBUI_PORTS: 8080/tcp
+      WEBUI_PASSWORD: ${QBIT_WEBUI_PASSWORD}
+      LIBTORRENT: v1
+    volumes:
+      - ./qbittorrent:/config
+      - ${LIBRARY_ROOT}/Torrents:/data/torrents
+      - ${LIBRARY_ROOT}/Torrents/temp:/data/torrents/temp
+    networks:
+      - media
+
+  seerr:
+    image: ghcr.io/hotio/seerr:latest
+    container_name: seerr
+    restart: unless-stopped
+    ports:
+      - "5055:5055"
+    environment: *common-env
+    volumes:
+      - ./seerr:/config
+    networks:
+      - media
+
+networks:
+  media:
+    name: media_network
